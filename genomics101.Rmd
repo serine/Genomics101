@@ -1,0 +1,17 @@
+---
+title: "Genomics 101"
+author: "Kirill"
+date: "13 January 2016"
+output: html_document
+---
+
+At some point in life (life that you choose to spend learning to analyse the data properly i.e not using MS excel) you will have exposure to the command line. The day you choose to imerse yourselv into command line will be the day you become a better scientist, more proficient scientist for one simple reason - **keyboard is intrinsicly faster then mouse**. And the day you take up command line you will be given account on a server by your "firendly" sysadmin. And the fist command you shall learrn will be `ssh` (secure shell).
+
+```{r, echo=TRUE, eval=FALSE}
+ssh john@115.146.85.14
+```
+## For Windows users only
+
+**Set yourselv free - hashedWordHere Windows - Get Linux**
+
+The easiest way to 

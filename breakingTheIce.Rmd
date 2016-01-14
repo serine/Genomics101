@@ -1,0 +1,307 @@
+---
+title: "Genomics 101"
+subtitle: "Common genomicky related biological file formats"
+output:
+  html_document:
+    css: stylesheet/main.css
+    highlight: espresso
+    number_sections: false
+    theme: readable
+    toc: yes
+    toc_depth: 4
+---
+```{r, echo=F, eval=T, engine='bash'}
+if [[ -f data/sample_FASTQ_file ]]; then rm data/sample_FASTQ_file; fi 
+if [[ -f data/sample_FASTQ_file.check ]]; then rm data/sample_FASTQ_file.check; fi 
+if ! [[ -f data/sample_FASTQ_file.fastq ]]; then gunzip data/sample_FASTQ_file.fastq.gz; fi 
+```
+
+> Learning Objectives: 
+>
+> - To understand FASTQ file format 
+> - To gain basic command line tools   knowledge
+> - To gather information about raw-reads in FASTQ file using command line tools
+
+## FASTQ file
+
+> "Raw Data" - your sequenced reads with quality information per base
+
+#### Introduction
+
+FASTQ is a simple text file with some rules associated with it. Firstly lets learn about how to identify if a file is a plain text file and if your FASTQ file is a plain text file. We'll use `file` command for that.
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+file data/sample_FASTQ_file.fastq
+```
+[ASCII](https://en.wikipedia.org/wiki/ASCII) text means a plain text file, where each character in one byte. In Unix/Linux systems file extension is some what irrelevant, let me illustrate that next, by renaming our `sample_FASTQ_file.fastq.gz` file into `sample_FASTQ_file` file. There are two commands that you can use to do so `cp` for copy and `mv` for move. `cp` will simply make a copy of existing file, whereas `mv` will "move" file to a new file name. 
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+cp -v data/sample_FASTQ_file.fastq data/sample_FASTQ_file
+file data/sample_FASTQ_file
+```
+
+Because I'd like to keep my original file I'm using `cp` command. Option `-v` is for verbose, meaning "show me what you doing". We can even give our file any extension we want
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+cp -v data/sample_FASTQ_file.fastq data/sample_FASTQ_file.check
+file data/sample_FASTQ_file.check
+```
+We still get the right answer - plain text (ASCII) file.
+
+This particular FASTQ files is very small. I made it so for the purpose of this exercise. Usually though FASTQ files can range from few hundreds of megabyte s to gigabytes in size. It is very common to compress or `zip` FASTQ files, which will result in smaller file size, thereby saving disk space. I'm going to show you how to use `gzip` command to compress FASTQ files, but bear in mind that you can use this command on any files.
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+gzip -k -v data/sample_FASTQ_file.fastq
+```
+```{r, echo=F, eval=TRUE, engine='bash'}
+rm data/sample_FASTQ_file.fastq.gz
+```
+Option `-k` here stands for keep, which will keep original file and create new `gzip`ed file and `-v` again for verbose, just to gain a bit more information about the process. Often though verbose mode will print a lot of text to the screen, which will polute your working space and not provide much useful information, this is why verbose mode is always switched off by default. Most if not all Unix/Linux tools will have verbose option if you ever want to gain more information about process. When something isn't working the way you excpected always try running in verbose mode to get error or other messages.
+As an aside here an alternative way to provide option (flag) to Unix/Linux commands. 
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+gzip -kv data/sample_FASTQ_file.fastq
+```
+
+You can if you like specify every option with a dash sign before it or as shown above you can simple give a signle dash sign before all option and then simply stick them all together. It a presonal preference how you want to do it. Perhaps as a beginner it'll be good practice to keep all options separate so that you don't get confused.
+
+Now that we've compressed - `gzip`ed our file, lets check what sort of file it is using familiar to us `file` command.
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+file data/sample_FASTQ_file.fastq.gz
+```
+Do you see now that `gzip`ed files are NOT plain text files. This will become important later.
+
+To summarise this section I'd like to reiterate that FASTQ is a plain text file, however most of the time it is stored in compressed - `gzip`ed form. When FASTQ files are `gzip`ed they are no longer plain text file.
+
+----------------------------------------------------------------------------------------------------
+
+#### Looking inside plain text file
+
+Everything that I'm going to show you below is applicable to any text or compressed files, however I'll only talk about FASTQ files in this section. There are a few different commands that allow us to view file content. 
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+cat data/sample_FASTQ_file.fastq
+```
+`cat` will spits out all of the file content on the terminal window. The problem with using `cat` this way is that you can't control what's displayed in your terminal. If the content of the file is much longer than what can be fitted in the terminal window, well as far as `cat` concerned it's too bad. In that case you only going to get last bit that fitted in the window, because `cat` tries to display everyting at once.
+
+Another command `head` that allow us to have more control over what's displayed in the terminal. `head` will read file top-down and display discreet number of lines, by default it's first 10 lines.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+head data/sample_FASTQ_file.fastq
+```
+
+You can use `-n` option following by the number of lines to display how many lines you like to see.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+head -n 4 data/sample_FASTQ_file.fastq
+```
+
+This is nice, but we kinder of have to do a bit of guessing as to how many line we can fit in the terminal window. It gets messier when we need to read next so many lines in and it is annoying having to execute `head` command every time we need to look at the next couple of lines.
+
+Here is another command `less` that we can use to display files content. The great thing about `less` it can fit right amount of lines in the terminal and it allows scrolling through the file. 
+
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+less data/sample_FASTQ_file.fastq
+```
+
+You can certainly `less` the file to quickly look into it, in fact it is almost a routine procedure to quickly glance into file and see how it looks. Later I'll introduce other biological file formats and I'll always say `less` or `cat` the file to see what it looks like. 
+
+`less` command is a little special. I'm going to formally introduce "pipes" and "redirects" in separate chapter later, but here is a quick pick at what is "pipe". Unix/Linux philosophy is to have small programs/tools that do one jobs and they are doing it well and every program can act as a module inside chain of commands. The way you "chain" commands together is you'd use  `|` (pipe).
+
+You going to learn that many tools produce output onto terminal window and alot of the time output won't fit in the terminal window, therefore youi'll want to chain you command with `less` or in proper language you'll want to "pipe" your output to `less`. Piping to `less` will become your second nature.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+cat data/sample_FASTQ_file.fastq | less
+```
+It's a bit useless to use `cat` command and then pipe it into `less` when you can use `less` directly. But what if you want to do something with the file's content. Maybe you want to sort lines in particular order. 
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+cat data/sample_FASTQ_file.fastq | sort | less
+```
+
+It will feel a bit more useful when you start working and looking at big files.
+
+----------------------------------------------------------------------------------------------------
+
+#### Looking inside compressed file
+
+As mentioned before FASTQ files can be very big and most of the time they are present in the compressed - `gzip`ed form. Remember that `gzip`ed file isn't plain text anymore and we cannot use those commands we've jsut learned to work with compressed files, because they are not plain text and tools like `cat`, `head` and `less` can only work with plain text files.
+
+One way for us to look into compressed FASTQ files would be firstly to decompress the file and then use those plain text commands to do the usual route we've learned before.
+
+```{r, echo=T, eval=T, engine='bash'}
+gunzip -k data/sample_FASTQ_file.fastq.gz
+less data/sample_FASTQ_file.fastq
+```
+Here we are using `gunzip` command which does the opposite action to `gzip` command. Note `-k` option, this is exactly the same option as in `gzip` - to keep current file and make new, unzipped file. However uncompressing `gzip`ed files is not only time consuming and it takes more disk space, but during the process you data might get corrupted. This doesn't usually happened, but it can. Unless for some reason you really have to work with plain text file, don't `gunzip` your FASTQ files.
+
+Here is a better alternative, which will save you both time and space `zless` and `zcat` commands. Both of these commands can work directly with `gzip`ed files
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz 
+```
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zless data/sample_FASTQ_file.fastq.gz
+```
+
+Here is a better example as when you'd use `cat` and `less` together. For example your FASTQ is very long, but only want to see the first 8 lines and your FASTQ file is `gzip`ed.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | head -n 8 | less
+```
+
+Or you might be interested in exactly third and fourth lines. In order to display only thrid and forth line we'll need to use another command `tail` which is the opposite command to `head`, it reads file down-top
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 2 | less
+```
+
+Again it doesn't make to much sense to pipe output of two lines into `less` since two lines most definitely will fit in the terminal window, but at some point you'll want to grab exact number of line(s) that may or may not fit in the terminal. Now you can apply this methodology to do so and you'd want to pipe it `less` in the end.
+
+Now that've learned how to look into `gzip`ed files, lets save the dist space and delet all other files.
+
+```{r, echoF, eval=T, engine='bash'}
+if ! [[ -f data/sample_FASTQ_file.fastq.gz ]]; then gzip data/sample_FASTQ_file.fastq; fi
+```
+
+```{r, echo=T, eval=T, engine='bash'}
+rm data/sample_FASTQ_file.fastq 
+rm data/sample_FASTQ_file
+rm data/sample_FASTQ_file.check
+```
+To summarise this section I would like strongly encourage everyone not to play with you raw-data files such as FASTQ. This includes:
+
+- do not rename them
+- do not decompress/compress them
+- keep them in the secure and backed up place 
+
+If you want to interrogate your FASTQ files, make a copy and mess with the copy not the original !
+If you are very unlucky and you corrupt or lose your raw data potentially months or years of hard lab work have gone down the toilet. Whereas if you loose you BAM files (will talk about them later, they are downstream files from FASTQ) you can always regenerate them. It could take hours or days, but you can definitely get them back, most often free or at relatively little cost. Whenever you feel like fiddling with your only FASTQ file copy, think about hard work you've put into and amount of time and money was spend on getting them.
+
+----------------------------------------------------------------------------------------------------
+
+#### FASTQ explained
+
+[FASTQ files](https://en.wikipedia.org/wiki/FASTQ_format) hold your raw sequences that came of the sequencing machine. Depending on sequencing platform of your choice and perhaps the depth to which you'd like to sequence the amount of raw reads in your FASTQ files will be different. Typically if you've used [Illumina](http://www.illumina.com) instruments you will can get millions of reads in your FASTQ files. Each read in that file (for Illumina sequencing) will be between 100-300 bases long, these days usually reads come in 100 or 150 bases lengths. Usually all reads in one FASTQ files are of uniform length i.e however many millions you've got in your FASTQ files will all be of say 100 bases long.
+
+If you've used [PacBio](http://www.pacb.com/) you can get very long reads up to 1 kb = 1000 bases, but you won't get FASTQ file from PacBio instrument. This is platform is still in early days and I'll not talk about it. One thing to mention though if PacBio will have its own new file format and if it is plain text file format than all of the same tools and methodologies will be applicable.
+
+Inside the FASTQ file each read always takes up four lines.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | head -n 4 
+```
+Note that `head` command doesn't have equivalent of `zless` or `zcat` to look into compressed files, so we'd have to chain two commands together. One that can look into compressed files `zcat` and another that can give us exact number of lines `head`.
+
+1. First line is read ID, always starts with `@` sign. This is unique identify which will be carried over into BAM file
+2. Your sequence, in this particular case its 94 bases long (I trimmed 6 bases off so that it fits nicely on a page)
+3. This lines always starts with `+` sign and allows addition of extra description. It is common to see this line empty or it can also have read ID
+4. Per base quality string. This string must be exactly the same length as the line 2 - your sequence. So here it is 94 characters long 
+
+Given that each read is represented by four lines. How can we calculate how many reads we have in any given FASTQ files?
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | wc
+```
+Here is another new command `wc` - word count. This command counts number of words in any text file. Note that we are chaining commands again. We using `zcat` to get the file content and we are piping output to a new command `wc` to do a second task - count lines. By default `wc` prints new lines, number of words, number of bytes in that exact order. At this stage we are only interested in the first number - number of new lines and we can simply ignore other two numbers. If it really distracts you, you can use `-l` flag for lines only. 
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | wc -l 
+```
+
+Obviously this is very small FASTQ file, in practice you'll get million of lines, depending on how deep your sequencing was. Total number of lines is 20, but how many actual reads (sequences) we have in that files? 
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+echo $(( 20 / 4 ))
+```
+Yet another command `echo`. This command simply returns what it's given. e.g 
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+echo Hello
+```
+Note the `$` sign. This is special in BASH, means return the value of whats in the brackets (this is more advance and you don't need to know it at this stage)
+
+I hope we have established that there are 5 raw sequences in this FASTQ files, each is 94 bases long. This is routine procedure to quickly check raw data depth, by counting amount of reads in the file. It can take few minutes to get `wc` result back, depending on the depth of the data. This is a little bit advanced, but this is how you can perform this in one line.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+echo $(( `zcat data/sample_FASTQ_file.fastq.gz | wc -l` / 4 ))
+```
+backquotes (\`) in BASH allows you to execute one command inside another. In the example about `zcat data/samaple_FASTQ_file.fastq.gz | wc -l` gets evaluated first and then the result of that, which is 20 is divided by 4 following `echo` command evaluation
+
+----------------------------------------------------------------------------------------------------
+
+#### FASTQ quality string 
+
+Quality string represent the confidence in each base in our raw sequence. You don't need to understand at this stage all details about quality string. It is important to understand that quality string always filed with random [ASCII](https://en.wikipedia.org/wiki/ASCII) characters, that actually represent integers (the downstream tools usually will convert ASCII character into integer). I'm going to illustrate how to convert ASCII character into integer, this is advanced BASH ing, you don't have to pay attention to the code, just focus on the output.
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1
+```
+This will give us just the quality string of very first read
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+qstring=`zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1`
+echo $qstring
+```
+
+I'm making new variable `qstring` for quality string (I can use any names). Now my quality string is stored inside `qstring` variable, that I call at my convenience. Remember how I mentioned before in BASH if you want to get variable values you need to use `$` sign, because if I just `echo qstring` I will get back the work `qstring`
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+qstring=`zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1`
+echo ${qstring:0:1}
+printf "%d\n" "'${qstring:0:1}"
+```
+
+This is where it get advanced. Here I'm indexing my `qstring` i.e getting only first character from the string and then convert it to integer with aid of `printf` command
+
+```{r, echo=T, eval=TRUE, engine='bash'}
+qstring=`zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1`
+for index in `seq 0 ${#qstring}`; do printf "%s %d\n" "${qstring:$index:1}" "'${qstring:$index:1}"; done
+```
+
+Here I using `for` loop to step through every character in the string and converted into integer
+
+```{r, echo=TRUE, eval=TRUE, engine='bash'}
+qstring=`zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1`
+for index in `seq 0 ${#qstring}`; do printf "%d" "'${qstring:$index:1}"; done
+```
+Doing the same except I'm not printing every character and its associated quality string on new line
+
+```{r, echo=F, eval=TRUE, engine='bash'}
+qstring=`zcat data/sample_FASTQ_file.fastq.gz | head -n 4 | tail -n 1`
+echo $qstring
+```
+Now should appreciate that ASCII encoded quality string is much easier to read. Also note that ASCII character is a single character that can represent large value, upto 128, thereby making FASTQ file neater and easier to read.
+
+#### A thing about FASTQ files
+
+One other thing about FASTQ files you should be aware is how they are related to your actual biological sample. Lets say you are doing simple gene knock-down experiment in mouse liver tissue. You will have one wild-type mouse - "wt" and one "mutant" mouse with one gene knocked-down in its liver. You then extract liver tissues from both mice and performed RNA-sequencing (RNA-seq) on both of then. Depending on what sort of sequencing you did you can have anywhere from 2 to 8 or more FASTQ files. You always going to end up with an even number of files though.
+
+In the case of two files its simple, one FASTQ belong to `wt.fastq.gz` and the other to `mutant.fastq.gz`. However if you performed paired-end sequencing then you are going to end up with at least four files two for each conditions e.g
+
+- `wt_R1.fastq.gz`
+- `wt_R2.fastq.gz`
+
+and
+
+- `mutant_R1.fastq.gz`
+- `mutant_R2.fastq.gz`
+
+One other possibility is that during sequencing (I'm refering here to Illumina RNA-sequencing) you samples have been split across several different sequencing lanes, perhaps because you really want to sequence you data deep and each lane can only go so deep, therefore for you particular experiment you need at least two lanes. If each sample was paired-end and split across two lanes then you are going to get four files per sample and eight all up e.g
+
+- `wt_R1_L001.fastq.gz`
+- `wt_R2_L001.fastq.gz`
+- `wt_R1_L002.fastq.gz`
+- `wt_R2_L002.fastq.gz`
+
+and
+
+- `mutant_R1_L001.fastq.gz`
+- `mutant_R2_L001.fastq.gz`
+- `mutant_R1_L002.fastq.gz`
+- `mutant_R2_L002.fastq.gz`
+
+This will become important when we are going to align to the reference genome, because files that had been splitted across several lanes are really just one sample and therefore will need to be merged together at some point. You can merge then before alignment i.e at the FASTQ file level or during alignment if you aligner allows that (my prefered method, because you don't have to mess around with FASTQ files) or you can merge then after alignment i.e at the BAM file level.
