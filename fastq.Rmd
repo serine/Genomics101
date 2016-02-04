@@ -276,7 +276,7 @@ echo $qstring
 ```
 Now should appreciate that ASCII encoded quality string is much easier to read. Also note that ASCII character is a single character that can represent large value, upto 128, thereby making FASTQ file neater and easier to read.
 
-#### A thing about FASTQ files
+#### FASTQ files and your samples
 
 One other thing about FASTQ files you should be aware is how they are related to your actual biological sample. Lets say you are doing simple gene knock-down experiment in mouse liver tissue. You will have one wild-type mouse - "wt" and one "mutant" mouse with one gene knocked-down in its liver. You then extract liver tissues from both mice and performed RNA-sequencing (RNA-seq) on both of then. Depending on what sort of sequencing you did you can have anywhere from 2 to 8 or more FASTQ files. You always going to end up with an even number of files though.
 
@@ -305,3 +305,11 @@ and
 - `mutant_R2_L002.fastq.gz`
 
 This will become important when we are going to align to the reference genome, because files that had been splitted across several lanes are really just one sample and therefore will need to be merged together at some point. You can merge then before alignment i.e at the FASTQ file level or during alignment if you aligner allows that (my prefered method, because you don't have to mess around with FASTQ files) or you can merge then after alignment i.e at the BAM file level.
+
+----------------------------------------------------------------------------------------------------
+
+<footer>
+ <small>&copy; Copyright, Kirill Tsyganov</small>
+</footer>
+
+----------------------------------------------------------------------------------------------------
